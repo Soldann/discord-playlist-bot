@@ -1,0 +1,9 @@
+{
+    "name": "Discord Playlist Bot",
+    "dependencies": {
+        "ws": "^7.2.3"
+    },
+    "scripts": {
+        "debug": "node --inspect-brk main.js"
+    }
+}
