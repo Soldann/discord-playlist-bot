@@ -1,5 +1,5 @@
 {
-    "name": "Discord Playlist Bot",
+    "name": "discord-playlist-bot",
     "dependencies": {
         "ws": "^7.2.3"
     },
