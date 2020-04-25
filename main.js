@@ -20,12 +20,17 @@ function runBot(gateway){
         lastSequenceNum = message.s;
         if (message.op == 10){
             heartbeatSender = setInterval(function(){
+                if (sendHeartbeat = true){ //connection is broken
+                    clearInterval(heartbeatSender);
+                }
                 connection.send(JSON.stringify({
                     "op" : 1,
                     "d" : lastSequenceNum
                 }));
+                sendHeartbeat = true;
             },message.d.heartbeat_interval);
         }
+        console.log(message);
     }
 
     connection.on('open',function(){
