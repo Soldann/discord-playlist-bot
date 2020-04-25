@@ -12,6 +12,21 @@ https.get("https://discordapp.com/api/gateway", function(res){ //get the WebSock
 
 function runBot(gateway){
     var connection = new ws(gateway);
+    var sendHeartbeat = false;
+    var heartbeatSender = null;
+    var lastSequenceNum = null;
+
+    function handleMessage(message) {
+        lastSequenceNum = message.s;
+        if (message.op == 10){
+            heartbeatSender = setInterval(function(){
+                connection.send(JSON.stringify({
+                    "op" : 1,
+                    "d" : lastSequenceNum
+                }));
+            },message.d.heartbeat_interval);
+        }
+    }
 
     connection.on('open',function(){
         connection.send(JSON.stringify({ //send handshake
@@ -28,6 +43,6 @@ function runBot(gateway){
     });
 
     connection.on('message',function(res){
-        console.log(res);
+        handleMessage(JSON.parse(res));
     });
 }
