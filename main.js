@@ -38,6 +38,24 @@ function runBot(gateway){
         console.log(message);
     }
 
+    function sendMessage(message){
+        var request = https.request({
+            hostname: 'discordapp.com',
+            path: '/api/channels/360542726896353290/messages',
+            method: 'POST',
+            agent: new https.Agent(this),
+            headers: {
+                "Authorization": "Bot " + auth.discord_token,
+                "User-Agent": "discord-playlist-bot (https://github.com/Soldann/discord-playlist-bot, v1.0.0)",
+                "Content-Type": "application/json",
+            }
+        });
+        request.write(JSON.stringify({
+            content: message,
+            tts: false
+        }), function(err){ request.end(); });
+    }
+
     connection.on('open',function(){
         connection.send(JSON.stringify({ //send handshake
             "op": 2,
