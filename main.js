@@ -3,6 +3,7 @@
 const auth = require("./auth.json"); //load tokens using require since they shouldn't be modified
 const https = require("https");
 const ws = require("ws");
+const qs = require("querystring");
 
 https.get("https://discordapp.com/api/gateway", function(res){ //get the WebSocket gateway from Discord
     var data = "";
@@ -15,6 +16,7 @@ function runBot(gateway){
     var sendHeartbeat = false;
     var heartbeatSender = null;
     var lastSequenceNum = null;
+    var uploadPlaylistID = null;
 
     function handleMessage(message) {
         if (message.op == 11) {
@@ -56,6 +58,23 @@ function runBot(gateway){
         }), function(err){ request.end(); });
     }
 
+    function getUploadPlaylistID(name){
+        https.get("https://www.googleapis.com/youtube/v3/channels?" + qs.stringify({
+            part: "contentDetails",
+            forUsername: name,
+            maxResults: 1,
+            key: auth.youtube_token
+        }), function(res){
+            var data = "";
+            res.on('data', function(d){
+                data += d;
+            })
+            res.on('end', function(){
+                uploadPlaylistID = JSON.parse(data).items[0].contentDetails.relatedPlaylists.uploads;
+                console.log(uploadPlaylistID);
+            })
+        })
+    }
     connection.on('open',function(){
         connection.send(JSON.stringify({ //send handshake
             "op": 2,
