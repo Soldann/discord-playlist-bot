@@ -68,6 +68,13 @@ function runBot(gateway){
             var data = "";
             res.on('data', function(d){
                 data += d;
+            });
+            res.on('end', function(){
+                uploadPlaylistID = JSON.parse(data).items[0].contentDetails.relatedPlaylists.uploads;
+                console.log(uploadPlaylistID);
+            });
+        });
+    }
             })
             res.on('end', function(){
                 uploadPlaylistID = JSON.parse(data).items[0].contentDetails.relatedPlaylists.uploads;
