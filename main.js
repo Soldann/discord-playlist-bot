@@ -75,6 +75,27 @@ function runBot(gateway){
             });
         });
     }
+
+    function getUploads(){
+        if (uploadPlaylistID === null){
+            console.error("no channel defined")
+        } else {
+            https.get("https://www.googleapis.com/youtube/v3/playlistItems?" + qs.stringify({
+                part: "snippet",
+                playlistId: uploadPlaylistID,
+                maxResults: 25,
+                key: auth.youtube_token
+            }), function(res){
+                var data = "";
+                res.on('data', function(d){
+                    data += d;
+                })
+                res.on('end', function(){
+                    console.log(JSON.parse(data).items);
+                })
+            });
+        }
+    }
             })
             res.on('end', function(){
                 uploadPlaylistID = JSON.parse(data).items[0].contentDetails.relatedPlaylists.uploads;
