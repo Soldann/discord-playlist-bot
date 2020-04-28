@@ -98,6 +98,10 @@ function runBot(gateway){
                 })
                 res.on('end', function(){
                     console.log(JSON.parse(data).items);
+                    for (let videos of JSON.parse(data).items){
+                        console.log(videos);
+                        vidCheck(videos.snippet.resourceId.videoId);
+                    }
                 })
             });
         }
