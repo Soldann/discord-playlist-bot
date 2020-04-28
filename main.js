@@ -91,7 +91,6 @@ function runBot(gateway){
             res.on('end', function(){
                     data = JSON.parse(data);
                     if (data.items.length > 0){
-                    console.log(data.items[0].snippet.channelId);
                     getUploadPlaylistID(data.items[0].snippet.channelId);
                     } else {
                         console.error("playlist not found");
