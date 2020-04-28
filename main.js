@@ -122,7 +122,6 @@ function runBot(gateway){
             });
             res.on('end', function(){
                 uploadPlaylistID = JSON.parse(data).items[0].contentDetails.relatedPlaylists.uploads;
-                console.log(uploadPlaylistID);
             });
         });
     }
