@@ -17,6 +17,7 @@ function runBot(gateway){
     var heartbeatSender = null;
     var lastSequenceNum = null;
     var uploadPlaylistID = null;
+    var discordChannel = null;
     var playlistID = null;
 
     function handleMessage(message) {
@@ -26,7 +27,17 @@ function runBot(gateway){
             lastSequenceNum = message.s;
         }
          
-        if (message.op == 10){
+        if (message.op == 0){
+            if (message.t == "MESSAGE_CREATE"){
+            } else if (message.t == "GUILD_CREATE") {
+                for (let ch of message.d.channels){
+                    if (ch.type == 0){ //default channel will be the first text channel
+                        discordChannel = ch.id;
+                        break;
+                    }
+                }
+            }
+        } else if (message.op == 10){
             heartbeatSender = setInterval(function(){
                 if (sendHeartbeat == true){ //connection is broken
                     clearInterval(heartbeatSender);
@@ -42,9 +53,10 @@ function runBot(gateway){
     }
 
     function sendMessage(message){
-        var request = https.request({
+        if (discordChannel){
+            let request = https.request({
             hostname: 'discordapp.com',
-            path: '/api/channels/360542726896353290/messages',
+                path: '/api/channels/'+ discordChannel +'/messages',
             method: 'POST',
             agent: new https.Agent(this),
             headers: {
@@ -57,6 +69,9 @@ function runBot(gateway){
             content: message,
             tts: false
         }), function(err){ request.end(); });
+        } else {
+            console.error("no discord channels detected");
+        }
     }
 
     function getChannel(){
