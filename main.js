@@ -17,6 +17,7 @@ function runBot(gateway){
     var heartbeatSender = null;
     var lastSequenceNum = null;
     var uploadPlaylistID = null;
+    var playlistID = null;
 
     function handleMessage(message) {
         if (message.op == 11) {
