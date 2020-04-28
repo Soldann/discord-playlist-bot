@@ -134,10 +134,14 @@ function runBot(gateway){
                     data += d;
                 })
                 res.on('end', function(){
-                    console.log(JSON.parse(data).items);
-                    for (let videos of JSON.parse(data).items){
+                    data = JSON.parse(data);
+                    if (data.error) {
+                        console.error(data.error.code + ": " + data.error.message);
+                    } else {
+                        for (let videos of data.items){
                         console.log(videos);
                         vidCheck(videos.snippet.resourceId.videoId);
+                    }
                     }
                 })
             });
