@@ -58,10 +58,13 @@ function runBot(gateway){
         }), function(err){ request.end(); });
     }
 
-    function getUploadPlaylistID(name){
-        https.get("https://www.googleapis.com/youtube/v3/channels?" + qs.stringify({
-            part: "contentDetails",
-            forUsername: name,
+    function getChannel(){
+        if (playlistID == null){
+            console.log("no playlist id");
+        } else {
+            https.get("https://www.googleapis.com/youtube/v3/playlists?" + qs.stringify({
+                part: "snippet",
+                id: playlistID,
             maxResults: 1,
             key: auth.youtube_token
         }), function(res){
@@ -70,10 +73,13 @@ function runBot(gateway){
                 data += d;
             });
             res.on('end', function(){
-                uploadPlaylistID = JSON.parse(data).items[0].contentDetails.relatedPlaylists.uploads;
-                console.log(uploadPlaylistID);
+                    data = JSON.parse(data);
+                    console.log(data);
+                    console.log(data.items[0].snippet.channelId);
+                    getUploadPlaylistID(data.items[0].snippet.channelId);
             });
         });
+    }
     }
 
     function getUploads(){
