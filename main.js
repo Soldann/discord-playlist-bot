@@ -26,9 +26,17 @@ function runBot(gateway){
         } else {
             lastSequenceNum = message.s;
         }
-         
+        
         if (message.op == 0){
             if (message.t == "MESSAGE_CREATE"){
+                let reResult = null;
+                if (reResult = message.d.content.match(/^yp!set\s([^\s]+)/)){ //set playlistID
+                    sendMessage("Playlist set to " + reResult[1]);
+                    playlistID = reResult[1];
+                    getChannel();
+                } else if (message.d.content.match(/^yp!get/)) {
+                    getUploads();
+                }
             } else if (message.t == "GUILD_CREATE") {
                 for (let ch of message.d.channels){
                     if (ch.type == 0){ //default channel will be the first text channel
@@ -55,20 +63,20 @@ function runBot(gateway){
     function sendMessage(message){
         if (discordChannel){
             let request = https.request({
-            hostname: 'discordapp.com',
+                hostname: 'discordapp.com',
                 path: '/api/channels/'+ discordChannel +'/messages',
-            method: 'POST',
-            agent: new https.Agent(this),
-            headers: {
-                "Authorization": "Bot " + auth.discord_token,
-                "User-Agent": "discord-playlist-bot (https://github.com/Soldann/discord-playlist-bot, v1.0.0)",
-                "Content-Type": "application/json",
-            }
-        });
-        request.write(JSON.stringify({
-            content: message,
-            tts: false
-        }), function(err){ request.end(); });
+                method: 'POST',
+                agent: new https.Agent(this),
+                headers: {
+                    "Authorization": "Bot " + auth.discord_token,
+                    "User-Agent": "discord-playlist-bot (https://github.com/Soldann/discord-playlist-bot, v1.0.0)",
+                    "Content-Type": "application/json",
+                }
+            });
+            request.write(JSON.stringify({
+                content: message,
+                tts: false
+            }), function(err){ request.end(); });
         } else {
             console.error("no discord channels detected");
         }
@@ -81,24 +89,24 @@ function runBot(gateway){
             https.get("https://www.googleapis.com/youtube/v3/playlists?" + qs.stringify({
                 part: "snippet",
                 id: playlistID,
-            maxResults: 1,
-            key: auth.youtube_token
-        }), function(res){
-            var data = "";
-            res.on('data', function(d){
-                data += d;
-            });
-            res.on('end', function(){
+                maxResults: 1,
+                key: auth.youtube_token
+            }), function(res){
+                var data = "";
+                res.on('data', function(d){
+                    data += d;
+                });
+                res.on('end', function(){
                     data = JSON.parse(data);
                     if (data.items.length > 0){
-                    getUploadPlaylistID(data.items[0].snippet.channelId);
+                        getUploadPlaylistID(data.items[0].snippet.channelId);
                     } else {
                         console.error("playlist not found");
                         playlistID = null;
                     }
+                });
             });
-        });
-    }
+        }  
     }
 
     function getUploadPlaylistID(channelID){
@@ -139,9 +147,9 @@ function runBot(gateway){
                         console.error(data.error.code + ": " + data.error.message);
                     } else {
                         for (let videos of data.items){
-                        console.log(videos);
-                        vidCheck(videos.snippet.resourceId.videoId);
-                    }
+                            console.log(videos);
+                            vidCheck(videos.snippet.resourceId.videoId);
+                        }
                     }
                 })
             });
@@ -162,8 +170,8 @@ function runBot(gateway){
                 var data = "";
                 res.on('data', function(d){
                     data += d;
-            })
-            res.on('end', function(){
+                })
+                res.on('end', function(){
                     data = JSON.parse(data);
                     if (data.error || data.items.length == 0){
                         //video not in playlist
@@ -171,7 +179,7 @@ function runBot(gateway){
                         console.log(data.items[0]);
                         sendMessage(data.items[0].snippet.title);
                     }
-        })
+                })
             });
         }
     }
