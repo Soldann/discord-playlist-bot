@@ -61,7 +61,7 @@ function runBot(gateway){
 
     function getChannel(){
         if (playlistID == null){
-            console.log("no playlist id");
+            console.error("no playlist id");
         } else {
             https.get("https://www.googleapis.com/youtube/v3/playlists?" + qs.stringify({
                 part: "snippet",
@@ -75,9 +75,13 @@ function runBot(gateway){
             });
             res.on('end', function(){
                     data = JSON.parse(data);
-                    console.log(data);
+                    if (data.items.length > 0){
                     console.log(data.items[0].snippet.channelId);
                     getUploadPlaylistID(data.items[0].snippet.channelId);
+                    } else {
+                        console.error("playlist not found");
+                        playlistID = null;
+                    }
             });
         });
     }
