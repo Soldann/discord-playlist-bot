@@ -102,12 +102,33 @@ function runBot(gateway){
             });
         }
     }
+
+    function vidCheck(vidID){
+        if (playlistID === null){
+            console.error("no playlist defined")
+        } else {
+            https.get("https://www.googleapis.com/youtube/v3/playlistItems?" + qs.stringify({
+                part: "snippet",
+                playlistId: playlistID,
+                maxResults: 25,
+                videoId: vidID,
+                key: auth.youtube_token
+            }), function(res){
+                var data = "";
+                res.on('data', function(d){
+                    data += d;
             })
             res.on('end', function(){
-                uploadPlaylistID = JSON.parse(data).items[0].contentDetails.relatedPlaylists.uploads;
-                console.log(uploadPlaylistID);
-            })
+                    data = JSON.parse(data);
+                    if (data.error || data.items.length == 0){
+                        //video not in playlist
+                    } else {
+                        console.log(data.items[0]);
+                        sendMessage(data.items[0].snippet.title);
+                    }
         })
+            });
+        }
     }
     connection.on('open',function(){
         connection.send(JSON.stringify({ //send handshake
