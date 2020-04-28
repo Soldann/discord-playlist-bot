@@ -102,6 +102,24 @@ function runBot(gateway){
     }
     }
 
+    function getUploadPlaylistID(channelID){
+        https.get("https://www.googleapis.com/youtube/v3/channels?" + qs.stringify({
+            part: "contentDetails",
+            id: channelID,
+            maxResults: 1,
+            key: auth.youtube_token
+        }), function(res){
+            var data = "";
+            res.on('data', function(d){
+                data += d;
+            });
+            res.on('end', function(){
+                uploadPlaylistID = JSON.parse(data).items[0].contentDetails.relatedPlaylists.uploads;
+                console.log(uploadPlaylistID);
+            });
+        });
+    }
+
     function getUploads(){
         if (uploadPlaylistID === null){
             console.error("no channel defined")
