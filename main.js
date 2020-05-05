@@ -25,6 +25,7 @@ function runBot(gateway){
     var discordChannel = null;
     var playlistID = null;
     var lastCheck = getDate();
+    var scheduler = null; //holds the setInterval object that calls getUploads every X mins
 
     function handleMessage(message) {
         if (message.op == 11) {
@@ -40,6 +41,9 @@ function runBot(gateway){
                     sendMessage("Playlist set to " + reResult[1]);
                     playlistID = reResult[1];
                     getChannel();
+                    if (!scheduler){
+                        scheduler = setInterval(getUploads, 1800000); //schedule checking for uploads every 30 mins
+                    }
                 } else if (message.d.content.match(/^yp!get/)) {
                     getUploads();
                 } else if (message.d.content.match(/^yp!channel/)) {
