@@ -172,7 +172,7 @@ function runBot(gateway){
             https.get("https://www.googleapis.com/youtube/v3/playlistItems?" + qs.stringify({
                 part: "snippet",
                 playlistId: playlistID,
-                maxResults: 25,
+                maxResults: 1, //should only return 1 if in playlist or 0 if not
                 videoId: vidID,
                 key: auth.youtube_token
             }), function(res){
