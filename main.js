@@ -11,14 +11,21 @@ https.get("https://discordapp.com/api/gateway", function(res){ //get the WebSock
     res.on('end',function(){runBot(JSON.parse(data).url);});
 });
 
+function getDate(){
+    var date = new Date();
+    return date.toISOString();
+}
+
 function runBot(gateway){
     var connection = new ws(gateway);
     var sendHeartbeat = false;
-    var heartbeatSender = null;
+    var heartbeatSender = null; //holds the setInterval object that sends websocket heartbeat
     var lastSequenceNum = null;
     var uploadPlaylistID = null;
     var discordChannel = null;
     var playlistID = null;
+    var lastCheck = getDate();
+    var scheduler = null; //holds the setInterval object that calls getUploads every X mins
 
     function handleMessage(message) {
         if (message.op == 11) {
@@ -34,8 +41,14 @@ function runBot(gateway){
                     sendMessage("Playlist set to " + reResult[1]);
                     playlistID = reResult[1];
                     getChannel();
+                    if (!scheduler){
+                        scheduler = setInterval(getUploads, 1800000); //schedule checking for uploads every 30 mins
+                    }
                 } else if (message.d.content.match(/^yp!get/)) {
                     getUploads();
+                } else if (message.d.content.match(/^yp!channel/)) {
+                    discordChannel = message.d.channel_id;
+                    sendMessage("Output channel set");
                 }
             } else if (message.t == "GUILD_CREATE") {
                 for (let ch of message.d.channels){
@@ -122,19 +135,17 @@ function runBot(gateway){
             });
             res.on('end', function(){
                 uploadPlaylistID = JSON.parse(data).items[0].contentDetails.relatedPlaylists.uploads;
-                console.log(uploadPlaylistID);
             });
         });
     }
 
     function getUploads(){
-        if (uploadPlaylistID === null){
-            console.error("no channel defined")
-        } else {
+        function requestPlaylistItems(pageToken=""){
             https.get("https://www.googleapis.com/youtube/v3/playlistItems?" + qs.stringify({
                 part: "snippet",
                 playlistId: uploadPlaylistID,
                 maxResults: 25,
+                nextPageToken: pageToken,
                 key: auth.youtube_token
             }), function(res){
                 var data = "";
@@ -146,13 +157,25 @@ function runBot(gateway){
                     if (data.error) {
                         console.error(data.error.code + ": " + data.error.message);
                     } else {
+                        if (data.nextPageToken && data.items.length > 0 && data.items[data.items.length - 1].snippet.publishedAt >= lastCheck){ //stop iterating if going past lastCheck time
+                            console.log("next page");
+                            requestPlaylistItems(data.nextPageToken); //recursively iterate through pages
+                        }
                         for (let videos of data.items){
-                            console.log(videos);
+                            if (videos.snippet.publishedAt < lastCheck) {
+                                break;
+                            }
                             vidCheck(videos.snippet.resourceId.videoId);
                         }
+                        lastCheck = getDate();
                     }
                 })
             });
+        }
+        if (uploadPlaylistID === null){
+            console.error("no channel defined")
+        } else {
+            requestPlaylistItems();
         }
     }
 
@@ -163,7 +186,7 @@ function runBot(gateway){
             https.get("https://www.googleapis.com/youtube/v3/playlistItems?" + qs.stringify({
                 part: "snippet",
                 playlistId: playlistID,
-                maxResults: 25,
+                maxResults: 1, //should only return 1 if in playlist or 0 if not
                 videoId: vidID,
                 key: auth.youtube_token
             }), function(res){
@@ -177,7 +200,8 @@ function runBot(gateway){
                         //video not in playlist
                     } else {
                         console.log(data.items[0]);
-                        sendMessage(data.items[0].snippet.title);
+                        sendMessage("**" + data.items[0].snippet.title + "**" +
+                            "\nhttps://youtu.be/" + data.items[0].snippet.resourceId.videoId);
                     }
                 })
             });
