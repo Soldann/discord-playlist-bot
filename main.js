@@ -176,7 +176,7 @@ function runBot(gateway){
                         //video not in playlist
                     } else {
                         console.log(data.items[0]);
-                        sendMessage(data.items[0].snippet.title);
+                        sendMessage("**" + data.items[0].snippet.title + "**" +
                     }
                 })
             });
