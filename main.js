@@ -19,7 +19,7 @@ function getDate(){
 function runBot(gateway){
     var connection = new ws(gateway);
     var sendHeartbeat = false;
-    var heartbeatSender = null;
+    var heartbeatSender = null; //holds the setInterval object that sends websocket heartbeat
     var lastSequenceNum = null;
     var uploadPlaylistID = null;
     var discordChannel = null;
