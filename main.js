@@ -133,13 +133,12 @@ function runBot(gateway){
     }
 
     function getUploads(){
-        if (uploadPlaylistID === null){
-            console.error("no channel defined")
-        } else {
+        function requestPlaylistItems(pageToken=""){
             https.get("https://www.googleapis.com/youtube/v3/playlistItems?" + qs.stringify({
                 part: "snippet",
                 playlistId: uploadPlaylistID,
                 maxResults: 25,
+                nextPageToken: pageToken,
                 key: auth.youtube_token
             }), function(res){
                 var data = "";
@@ -151,8 +150,13 @@ function runBot(gateway){
                     if (data.error) {
                         console.error(data.error.code + ": " + data.error.message);
                     } else {
+                        if (data.nextPageToken && data.items.length > 0 && data.items[data.items.length - 1].snippet.publishedAt >= lastCheck){ //stop iterating if going past lastCheck time
+                            console.log("next page");
+                            requestPlaylistItems(data.nextPageToken); //recursively iterate through pages
+                        } else {
+                            console.log(data.items[data.items.length - 1].snippet.publishedAt);
+                        }
                         for (let videos of data.items){
-                            console.log(videos);
                             if (videos.snippet.publishedAt < lastCheck) {
                                 break;
                             }
@@ -162,6 +166,11 @@ function runBot(gateway){
                     }
                 })
             });
+        }
+        if (uploadPlaylistID === null){
+            console.error("no channel defined")
+        } else {
+            requestPlaylistItems();
         }
     }
 
