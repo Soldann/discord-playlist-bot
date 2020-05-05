@@ -11,6 +11,11 @@ https.get("https://discordapp.com/api/gateway", function(res){ //get the WebSock
     res.on('end',function(){runBot(JSON.parse(data).url);});
 });
 
+function getDate(){
+    var date = new Date();
+    return date.toISOString();
+}
+
 function runBot(gateway){
     var connection = new ws(gateway);
     var sendHeartbeat = false;
@@ -19,6 +24,7 @@ function runBot(gateway){
     var uploadPlaylistID = null;
     var discordChannel = null;
     var playlistID = null;
+    var lastCheck = getDate();
 
     function handleMessage(message) {
         if (message.op == 11) {
@@ -147,8 +153,12 @@ function runBot(gateway){
                     } else {
                         for (let videos of data.items){
                             console.log(videos);
+                            if (videos.snippet.publishedAt < lastCheck) {
+                                break;
+                            }
                             vidCheck(videos.snippet.resourceId.videoId);
                         }
+                        lastCheck = getDate();
                     }
                 })
             });
@@ -177,6 +187,7 @@ function runBot(gateway){
                     } else {
                         console.log(data.items[0]);
                         sendMessage("**" + data.items[0].snippet.title + "**" +
+                            "\nhttps://youtu.be/" + data.items[0].snippet.resourceId.videoId);
                     }
                 })
             });
