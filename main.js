@@ -42,6 +42,9 @@ function runBot(gateway){
                     getChannel();
                 } else if (message.d.content.match(/^yp!get/)) {
                     getUploads();
+                } else if (message.d.content.match(/^yp!channel/)) {
+                    discordChannel = message.d.channel_id;
+                    sendMessage("Output channel set");
                 }
             } else if (message.t == "GUILD_CREATE") {
                 for (let ch of message.d.channels){
