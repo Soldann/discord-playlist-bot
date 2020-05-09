@@ -26,6 +26,10 @@ function runBot(gateway){
     var playlistID = null;
     var lastCheck = getDate();
     var scheduler = null; //holds the setInterval object that calls getUploads every X mins
+    var rateLimitReset = 5000; //delay sending messages for this amount of time (in ms) to reset the rate limit
+    var rateLimit = 1; //default rateLimit set to 1
+    var rateSent = 0; //number of message requests sent
+    var rateLimitTimer = null;
 
     function handleMessage(message) {
         if (message.op == 11) {
@@ -49,7 +53,7 @@ function runBot(gateway){
                 } else if (message.d.content.match(/^yp!channel/)) {
                     discordChannel = message.d.channel_id;
                     sendMessage("Output channel set");
-                }
+                    }
             } else if (message.t == "GUILD_CREATE") {
                 for (let ch of message.d.channels){
                     if (ch.type == 0){ //default channel will be the first text channel
@@ -74,7 +78,10 @@ function runBot(gateway){
     }
 
     function sendMessage(message){
-        if (discordChannel){
+        if (rateSent >= rateLimit) {
+            setTimeout(sendMessage,rateLimitReset,message); //do nothing, try again after the rateLimitReset
+        } else if (discordChannel){
+            rateSent += 1; //update because we sent a message request
             let request = https.request({
                 hostname: 'discordapp.com',
                 path: '/api/channels/'+ discordChannel +'/messages',
@@ -85,6 +92,17 @@ function runBot(gateway){
                     "User-Agent": "discord-playlist-bot (https://github.com/Soldann/discord-playlist-bot, v1.0.0)",
                     "Content-Type": "application/json",
                 }
+            }, function(res){
+                if (res.statusCode == 429){
+                    console.error("Rate Limited!");
+                }
+                //update rateLimit variables in case they have changed
+                rateLimit = res.headers["x-ratelimit-limit"];
+                rateLimitReset = res.headers["x-ratelimit-reset-after"] * 1000 //change from seconds to ms
+
+                //don't allow multiple instances, use the most recent data
+                clearTimeout(rateLimitTimer); 
+                rateLimitTimer = setInterval(() => {rateSent = 0;}, rateLimitReset);
             });
             request.write(JSON.stringify({
                 content: message,
