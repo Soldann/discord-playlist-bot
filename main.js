@@ -1,5 +1,7 @@
 "use strict";
 
+//TODO: cleanup debug statements
+
 const auth = require("./auth.json"); //load tokens using require since they shouldn't be modified
 const https = require("https");
 const ws = require("ws");
@@ -53,7 +55,7 @@ function runBot(gateway){
                 } else if (message.d.content.match(/^yp!channel/)) {
                     discordChannel = message.d.channel_id;
                     sendMessage("Output channel set");
-                    }
+                }
             } else if (message.t == "GUILD_CREATE") {
                 for (let ch of message.d.channels){
                     if (ch.type == 0){ //default channel will be the first text channel
