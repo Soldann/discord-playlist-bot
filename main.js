@@ -1,5 +1,7 @@
 "use strict";
 
+//TODO: cleanup debug statements
+
 const auth = require("./auth.json"); //load tokens using require since they shouldn't be modified
 const https = require("https");
 const ws = require("ws");
