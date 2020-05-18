@@ -244,4 +244,8 @@ function runBot(gateway){
     connection.on('message',function(res){
         handleMessage(JSON.parse(res));
     });
+
+    connection.on('close', function(code, reason){
+        console.log("CONNECTION CLOSED: " + code.toString() + reason);
+    });
 }
