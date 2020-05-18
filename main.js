@@ -32,6 +32,7 @@ function runBot(gateway){
     var rateLimit = 1; //default rateLimit set to 1
     var rateSent = 0; //number of message requests sent
     var rateLimitTimer = null;
+    var sessionId = null;
 
     function handleMessage(message) {
         if (message.op == 11) {
@@ -63,6 +64,8 @@ function runBot(gateway){
                         break;
                     }
                 }
+            } else if (message.t == "READY"){
+                sessionId = message.d.session_id;
             }
         } else if (message.op == 10){
             heartbeatSender = setInterval(function(){
@@ -75,6 +78,8 @@ function runBot(gateway){
                 }));
                 sendHeartbeat = true;
             },message.d.heartbeat_interval);
+        } else if (message.op == 7 || message.op == 9) { //reconnect
+            connectSession(connection);
         }
         console.log(message);
     }
@@ -227,18 +232,34 @@ function runBot(gateway){
             });
         }
     }
+
+    function connectSession(connection){
+        if (sessionId == null){
+            connection.send(JSON.stringify({ //send handshake
+                "op": 2,
+                "d": {
+                "token": auth.discord_token,
+                "properties": {
+                    "$os": "linux",
+                    "$browser": "nodejs",
+                    "$device": "nodejs"
+                }
+                }
+            }));
+        } else {
+            connection.send(JSON.stringify({
+                "op": 6,
+                "d": {
+                    "token": auth.discord_token,
+                    "session_id": sessionId,
+                    "seq": lastSequenceNum
+                }
+            }));
+        }
+    }
+
     connection.on('open',function(){
-        connection.send(JSON.stringify({ //send handshake
-            "op": 2,
-            "d": {
-              "token": auth.discord_token,
-              "properties": {
-                "$os": "linux",
-                "$browser": "nodejs",
-                "$device": "nodejs"
-              }
-            }
-          }));
+        connectSession(connection);
     });
 
     connection.on('message',function(res){
