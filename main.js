@@ -79,6 +79,7 @@ function runBot(gateway){
                 sendHeartbeat = true;
             },message.d.heartbeat_interval);
         } else if (message.op == 7 || message.op == 9) { //reconnect
+            connection = new ws(gateway); //restart connection
             connectSession(connection);
         }
         console.log(message);
