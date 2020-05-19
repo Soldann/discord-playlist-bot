@@ -78,7 +78,8 @@ function runBot(gateway){
                 }));
                 sendHeartbeat = true;
             },message.d.heartbeat_interval);
-        } else if (message.op == 7 || message.op == 9) { //reconnect
+        } else if (message.op == 7) { //reconnect
+            clearInterval(heartbeatSender); //stop sending heartbeats
             connection = new ws(gateway); //restart connection
             connection.on("open", function(){connectSession(connection);});
         }
