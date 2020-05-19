@@ -80,7 +80,7 @@ function runBot(gateway){
             },message.d.heartbeat_interval);
         } else if (message.op == 7 || message.op == 9) { //reconnect
             connection = new ws(gateway); //restart connection
-            connectSession(connection);
+            connection.on("open", function(){connectSession(connection);});
         }
         console.log(message);
     }
@@ -235,6 +235,7 @@ function runBot(gateway){
     }
 
     function connectSession(connection){
+        console.log("CONNECTION OPENED");
         if (sessionId == null){
             connection.send(JSON.stringify({ //send handshake
                 "op": 2,
@@ -257,17 +258,18 @@ function runBot(gateway){
                 }
             }));
         }
+
+        connection.on('message',function(res){
+            handleMessage(JSON.parse(res));
+        });
+    
+        connection.on('close', function(code, reason){
+            console.log("CONNECTION CLOSED: " + code.toString() + reason);
+        });
     }
 
     connection.on('open',function(){
         connectSession(connection);
     });
 
-    connection.on('message',function(res){
-        handleMessage(JSON.parse(res));
-    });
-
-    connection.on('close', function(code, reason){
-        console.log("CONNECTION CLOSED: " + code.toString() + reason);
-    });
 }
