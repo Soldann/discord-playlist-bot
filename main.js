@@ -34,6 +34,12 @@ function runBot(gateway){
     var rateLimitTimer = null;
     var sessionId = null;
 
+    function reconnect(){
+        clearInterval(heartbeatSender); //stop sending heartbeats
+        connection = new ws(gateway); //restart connection
+        connection.on("open", function(){connectSession(connection);});
+    }
+
     function handleMessage(message) {
         if (message.op == 11) {
             sendHeartbeat = false;
@@ -72,6 +78,8 @@ function runBot(gateway){
                 if (sendHeartbeat == true){ //connection is broken
                     console.error("connection lost");
                     clearInterval(heartbeatSender);
+                    connection.close(1002); //close connection
+                    reconnect();
                 }
                 connection.send(JSON.stringify({
                     "op" : 1,
@@ -80,9 +88,7 @@ function runBot(gateway){
                 sendHeartbeat = true;
             },message.d.heartbeat_interval);
         } else if (message.op == 7) { //reconnect
-            clearInterval(heartbeatSender); //stop sending heartbeats
-            connection = new ws(gateway); //restart connection
-            connection.on("open", function(){connectSession(connection);});
+            reconnect();
         }
         console.log(message);
     }
