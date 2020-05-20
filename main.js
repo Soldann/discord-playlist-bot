@@ -70,6 +70,7 @@ function runBot(gateway){
         } else if (message.op == 10){
             heartbeatSender = setInterval(function(){
                 if (sendHeartbeat == true){ //connection is broken
+                    console.error("connection lost");
                     clearInterval(heartbeatSender);
                 }
                 connection.send(JSON.stringify({
