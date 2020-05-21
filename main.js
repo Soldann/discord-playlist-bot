@@ -89,6 +89,9 @@ function runBot(gateway){
             },message.d.heartbeat_interval);
         } else if (message.op == 7) { //reconnect
             reconnect();
+        } else if (message.op == 9) { //if error, start session from scratch
+            sessionId = null;
+            reconnect();
         }
         console.log(message);
     }
